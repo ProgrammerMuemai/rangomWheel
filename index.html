@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>วงล้อสุ่ม (ส่วนตัว)</title>
+  <style>
+    :root{
+      --ink:#12122a;
+      --muted:#3a3a66;
+      --card: rgba(255,255,255,.40);
+      --card2: rgba(255,255,255,.22);
+      --shadow: 0 18px 50px rgba(0,0,0,.22);
+      --btn1:#6a35ff;
+      --btn2:#3f84ff;
+      --ok:#18c39a;
+      --danger:#ff3b5c;
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Thai", sans-serif;
+      color: var(--ink);
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 650px at 25% 10%, rgba(255,255,255,.45) 0%, transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(255,255,255,.25) 0%, transparent 65%),
+        linear-gradient(180deg, #7b4dff 0%, #b86cff 35%, #ff9fb0 70%, #ffd0a6 100%);
+      overflow-x:hidden;
+    }
+
+    .decorRainbow{
+      position:fixed;
+      right:-120px; top:-120px;
+      width:420px; height:420px;
+      border-radius:50%;
+      background:
+        conic-gradient(from 210deg,
+          #ff71a8 0 12%, #ffd86b 12% 24%, #6be0ff 24% 36%,
+          #6cff9c 36% 48%, #a57bff 48% 60%, #ff71a8 60% 72%,
+          transparent 72% 100%);
+      opacity:.55;
+      pointer-events:none;
+    }
+    .cloud{
+      position:fixed;
+      width:160px; height:72px;
+      background: rgba(255,255,255,.72);
+      border: 3px solid rgba(0,0,0,.12);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      pointer-events:none;
+    }
+    .cloud:before,.cloud:after{
+      content:"";
+      position:absolute;
+      background: rgba(255,255,255,.72);
+      border: 3px solid rgba(0,0,0,.12);
+      border-radius: 999px;
+    }
+    .cloud:before{ width:70px; height:70px; left:18px; top:-22px; }
+    .cloud:after{ width:86px; height:86px; right:20px; top:-32px; }
+    .cloud.c1{ left:-50px; bottom:90px; transform:scale(.9); opacity:.9; }
+    .cloud.c2{ right:-60px; bottom:160px; transform:scale(.75); opacity:.85; }
+    .cloud.c3{ left:60px; top:120px; transform:scale(.6); opacity:.7; }
+
+    header{
+      max-width:1200px;
+      margin:0 auto;
+      padding: 20px 18px 8px;
+    }
+    .brand{
+      display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;
+    }
+    .brand .mini{
+      font-weight:900;
+      letter-spacing:.5px;
+      background: rgba(255,255,255,.75);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 28px rgba(0,0,0,.12);
+    }
+    .brand .logo{
+      font-weight:1000;
+      font-size: 52px;
+      line-height:1;
+      letter-spacing: 1px;
+      color:#111;
+      text-shadow:
+        0 6px 0 rgba(255,255,255,.55),
+        0 14px 30px rgba(0,0,0,.22);
+    }
+    .brand .logo .rain{
+      background: linear-gradient(90deg,#ffd86b,#ff71a8,#6be0ff,#6cff9c,#a57bff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      -webkit-text-stroke: 2px rgba(0,0,0,.18);
+    }
+    .sub{
+      margin-top:6px;
+      color: rgba(0,0,0,.55);
+      font-weight:700;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding: 8px 18px 26px;
+      display:grid;
+      grid-template-columns: 480px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns: 1fr;}
+      .brand .logo{font-size:42px;}
+    }
+
+    .card{
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid rgba(255,255,255,.38);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .hd{
+      padding:14px 14px 12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(255,255,255,.20);
+      border-bottom: 1px solid rgba(255,255,255,.35);
+    }
+    .hd strong{font-size:14px}
+    .bd{padding:14px;}
+
+    label{font-size:12px; color: rgba(0,0,0,.65); font-weight:800; display:block; margin:0 0 6px;}
+    input[type="text"], input[type="password"], textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.65);
+      color: var(--ink);
+      outline:none;
+      font-weight:700;
+    }
+    textarea{min-height:150px; resize:vertical; line-height:1.35}
+
+    .btns{display:flex; gap:10px; flex-wrap:wrap;}
+    button{
+      border:0;
+      border-radius: 14px;
+      padding:10px 12px;
+      color:white;
+      cursor:pointer;
+      font-weight:900;
+      box-shadow: 0 12px 30px rgba(0,0,0,.16);
+      background: linear-gradient(90deg, var(--btn1), var(--btn2));
+    }
+    button:hover{filter:brightness(.97)}
+    button.secondary{
+      background: rgba(255,255,255,.75);
+      color: var(--ink);
+      border:2px solid rgba(0,0,0,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.12);
+    }
+    button.secondary:hover{filter:brightness(.98)}
+    button.ok{background: linear-gradient(90deg, #17c69b, #31d6b1);}
+    button.danger{background: linear-gradient(90deg, #ff3b5c, #ff6b86);}
+    button:disabled{opacity:.6; cursor:not-allowed; box-shadow:none}
+
+    .hint{font-size:12px; color: rgba(0,0,0,.60); margin-top:8px; line-height:1.45}
+    .stats{display:flex; gap:10px; flex-wrap:wrap; font-size:12px;}
+    .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.70);
+      border: 2px solid rgba(0,0,0,.08);
+      font-weight:900;
+      color: rgba(0,0,0,.70);
+    }
+
+    .wheelBox{display:grid; grid-template-rows:auto 1fr auto; gap:10px;}
+    .canvasWrap{display:grid; place-items:center; padding: 10px 14px 14px; position:relative;}
+    canvas{
+      width:min(560px, 92vw);
+      height:min(560px, 92vw);
+      max-width:560px;
+      max-height:560px;
+      border-radius:999px;
+      background: rgba(255,255,255,.18);
+      box-shadow: 0 22px 60px rgba(0,0,0,.22);
+    }
+    .pointer{
+      width:0;height:0;
+      border-left:18px solid transparent;
+      border-right:18px solid transparent;
+      border-top:34px solid #ff2f7a;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.30));
+      margin-top:-6px;
+    }
+
+    .overlay{
+      position:fixed; inset:0; z-index:999;
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+    }
+    .modal{
+      width:min(560px, 96vw);
+      border-radius:20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.72));
+      border:2px solid rgba(0,0,0,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal .mhd{
+      padding:14px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.55);
+    }
+    .modal .mbd{padding:14px;}
+    .win{
+      text-align:center;
+      font-weight:1000;
+      font-size:26px;
+      margin: 10px 0 14px;
+      text-shadow: 0 8px 20px rgba(0,0,0,.16);
+    }
+    .err{color:#b00020; font-size:12px; margin-top:10px; display:none; font-weight:900;}
+    .okmsg{color:#0a7a5d; font-size:12px; margin-top:10px; display:none; font-weight:900;}
+  </style>
+</head>
+<body>
+  <div class="decorRainbow"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+
+  <header>
+    <div class="brand">
+      <div class="mini">วงล้อสุ่ม</div>
+      <div class="logo"><span class="rain">RANDOM</span> WHEEL 😊</div>
+    </div>
+    <div class="sub">ธีมสดใส + ตัวเลขอ่านง่าย | ใช้ส่วนตัว (มี PIN)</div>
+  </header>
+
+  <!-- ===== LOCK ===== -->
+  <div class="overlay" id="lockBack" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="mhd">
+        <strong>🔒 โหมดส่วนตัว</strong>
+        <button class="secondary" id="btnHint">ลืม PIN?</button>
+      </div>
+      <div class="mbd">
+        <div class="win" style="font-size:20px;">ใส่ PIN เพื่อเข้าใช้งาน</div>
+
+        <label>PIN</label>
+        <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="ใส่ PIN" />
+
+        <div class="btns" style="margin-top:12px;">
+          <button class="ok" id="btnUnlock">ปลดล็อก</button>
+          <button class="secondary" id="btnRemember">จำฉันไว้บนเครื่องนี้</button>
+        </div>
+
+        <div class="err" id="pinErr">PIN ไม่ถูกต้อง</div>
+        <div class="okmsg" id="pinOk">ปลดล็อกแล้ว</div>
+
+        <div class="hint" style="margin-top:12px;">
+          * กันคนทั่วไปได้ แต่ไม่ใช่ระบบความปลอดภัยระดับธนาคาร<br>
+          * iPad แนะนำ Safari ปกติ (อย่าใช้ Private Mode) เพื่อให้ “จำฉันไว้” ทำงาน
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP ===== -->
+  <main class="wrap">
+    <section class="card">
+      <div class="hd">
+        <strong>ตั้งค่า</strong>
+        <button class="danger" id="btnLogout">ล็อกกลับ</button>
+      </div>
+      <div class="bd">
+        <label>ชื่อวงล้อ</label>
+        <input id="wheelName" type="text" placeholder="เช่น ชื่อวงล้อ" />
+
+        <div style="height:12px"></div>
+
+        <label>รายการ (ใส่ทีละบรรทัด)</label>
+        <textarea id="itemsInput" placeholder="เช่น
+ชาไทย
+กาแฟ
+โกโก้
+น้ำเปล่า"></textarea>
+
+        <div class="hint">คั่นด้วยบรรทัดใหม่ ระบบจะตัดบรรทัดว่างออกให้อัตโนมัติ</div>
+
+        <div style="height:12px"></div>
+
+        <div class="btns">
+          <button class="secondary" id="btnShuffle">สลับตำแหน่ง</button>
+          <button class="secondary" id="btnClear">เคลียร์รายการ</button>
+          <button class="secondary" id="btnFullscreen">ขยายหน้าจอ</button>
+          <button class="ok" id="btnApply">อัปเดตลงวงล้อ</button>
+        </div>
+
+        <div style="height:14px"></div>
+        <div class="stats">
+          <div class="pill" id="countPill">รายการ 0</div>
+          <div class="pill" id="lastPill">ล่าสุด: -</div>
+        </div>
+
+        <div class="hint" style="margin-top:12px;">
+          คีย์ลัด: <b>Space</b> = หมุน, <b>Esc</b> = ปิดผลลัพธ์
+        </div>
+      </div>
+    </section>
+
+    <section class="card wheelBox">
+      <div class="hd">
+        <strong id="wheelTitle">วงล้อสุ่ม</strong>
+        <div class="btns">
+          <button id="btnSpin">START</button>
+        </div>
+      </div>
+
+      <div class="canvasWrap">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="900" height="900"></canvas>
+      </div>
+
+      <div class="bd" style="padding-top:0">
+        <div class="hint">ข้อมูลรายการ/ชื่อวงล้อ ถูกเก็บในเครื่อง (ปิดเปิดใหม่ยังอยู่)</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== RESULT MODAL ===== -->
+  <div class="overlay" id="modalBack" style="display:none;">
+    <div class="modal">
+      <div class="mhd">
+        <strong>ผลการสุ่ม</strong>
+        <button class="secondary" id="btnCloseModal">ปิด</button>
+      </div>
+      <div class="mbd">
+        <div class="win" id="winText">-</div>
+        <div class="btns" style="justify-content:center;">
+          <button class="danger" id="btnRemoveWinner">ลบออก</button>
+          <button class="secondary" id="btnPlayAgain">ปิดหน้านี้</button>
+        </div>
+        <div class="hint" style="text-align:center;margin-top:10px;">Tip: กด Esc เพื่อปิด</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   PIN LOCK (semi-safe)
+   PIN = 172809
+   ========================= */
+const PIN_HASH = "6e708adae3c35451adb6eeddd1d610b0e2badace2c93846d442a395f06c21e2b";
+const LS_KEY_UNLOCK = "rw_private_unlock_v1";
+const LS_KEY_STATE  = "rw_private_state_v1";
+
+const $ = (id) => document.getElementById(id);
+
+const lockBack = $("lockBack");
+const pinInput = $("pinInput");
+const btnUnlock = $("btnUnlock");
+const btnRemember = $("btnRemember");
+const btnLogout = $("btnLogout");
+const btnHint = $("btnHint");
+const pinErr = $("pinErr");
+const pinOk = $("pinOk");
+
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+function showErr(msg){
+  pinErr.textContent = msg;
+  pinErr.style.display = "block";
+  pinOk.style.display = "none";
+}
+function showOk(msg){
+  pinOk.textContent = msg;
+  pinOk.style.display = "block";
+  pinErr.style.display = "none";
+}
+function lock(){
+  localStorage.removeItem(LS_KEY_UNLOCK);
+  lockBack.style.display = "flex";
+  pinInput.value = "";
+  pinErr.style.display = "none";
+  pinOk.style.display = "none";
+}
+function unlock(){
+  lockBack.style.display = "none";
+}
+async function tryUnlock(remember){
+  const pin = (pinInput.value || "").trim();
+  if(!pin){ showErr("กรุณาใส่ PIN"); return; }
+  const hash = await sha256(pin);
+  if(hash !== PIN_HASH){
+    showErr("PIN ไม่ถูกต้อง");
+    pinInput.select();
+    return;
+  }
+  showOk("ปลดล็อกแล้ว");
+  if(remember) localStorage.setItem(LS_KEY_UNLOCK, "1");
+  setTimeout(unlock, 180);
+}
+btnUnlock.addEventListener("click", () => tryUnlock(false));
+btnRemember.addEventListener("click", () => tryUnlock(true));
+pinInput.addEventListener("keydown", (e) => { if(e.key === "Enter") tryUnlock(false); });
+btnLogout.addEventListener("click", () => { if(confirm("ล็อกกลับ และล้างการจำเครื่องนี้ไหม?")) lock(); });
+btnHint.addEventListener("click", () => alert("ถ้าลืม PIN ต้องแก้ PIN_HASH ในไฟล์ index.html แล้ว Deploy ใหม่ครับ"));
+if(localStorage.getItem(LS_KEY_UNLOCK) === "1") unlock(); else lock();
+
+/* =========================
+   RANDOM WHEEL
+   ========================= */
+const canvas = $("wheel");
+const ctx = canvas.getContext("2d");
+const wheelName = $("wheelName");
+const itemsInput = $("itemsInput");
+const wheelTitle = $("wheelTitle");
+const btnApply = $("btnApply");
+const btnShuffle = $("btnShuffle");
+const btnClear = $("btnClear");
+const btnFullscreen = $("btnFullscreen");
+const btnSpin = $("btnSpin");
+const countPill = $("countPill");
+const lastPill = $("lastPill");
+
+const modalBack = $("modalBack");
+const winText = $("winText");
+const btnCloseModal = $("btnCloseModal");
+const btnPlayAgain = $("btnPlayAgain");
+const btnRemoveWinner = $("btnRemoveWinner");
+
+let items = [];
+let spinning = false;
+
+let currentAngle = 0;
+let targetAngle = 0;
+let spinStart = 0;
+let spinDuration = 0;
+let spinFromAngle = 0;
+let currentWinnerIndex = -1;
+
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function normalizeItems(text){
+  return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+}
+function saveState(){
+  const state = { name: wheelName.value.trim(), itemsText: itemsInput.value };
+  localStorage.setItem(LS_KEY_STATE, JSON.stringify(state));
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY_STATE);
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    wheelName.value = state.name || "";
+    itemsInput.value = state.itemsText || "";
+  }catch(e){}
+}
+
+function sliceColor(i,n){
+  const hue = (i * (360 / Math.max(1,n))) % 360;
+  return `hsl(${hue}, 85%, 60%)`;
+}
+
+/* ตัวอักษรอ่านง่าย: ขาว + ขอบดำ + เงา */
+function drawLabel(text, x, y, fontPx){
+  ctx.font = `1000 ${fontPx}px ui-sans-serif, system-ui, "Noto Sans Thai"`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.lineWidth = Math.max(3, Math.floor(fontPx/6));
+  ctx.strokeStyle = "rgba(0,0,0,.78)";
+  ctx.fillStyle = "rgba(255,255,255,.98)";
+  ctx.shadowColor = "rgba(0,0,0,.35)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+
+  ctx.strokeText(text, x, y);
+  ctx.fillText(text, x, y);
+
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+function drawWheel(){
+  const w=canvas.width, h=canvas.height;
+  const cx=w/2, cy=h/2;
+  const radius = Math.min(w,h)*0.43;
+
+  ctx.clearRect(0,0,w,h);
+
+  /* วงแหวนเรือง ๆ */
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.beginPath();
+  ctx.arc(0,0,radius+34,0,Math.PI*2);
+  const grad = ctx.createRadialGradient(0,0,radius+10, 0,0,radius+40);
+  grad.addColorStop(0, "rgba(255,255,255,.55)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+
+  /* ขอบนอกหนา */
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.beginPath();
+  ctx.arc(0,0,radius+16,0,Math.PI*2);
+  ctx.fillStyle="rgba(255,255,255,.85)";
+  ctx.fill();
+  ctx.lineWidth=10;
+  ctx.strokeStyle="rgba(0,0,0,.55)";
+  ctx.stroke();
+  ctx.restore();
+
+  if(items.length===0){
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.beginPath();
+    ctx.arc(0,0,radius,0,Math.PI*2);
+    ctx.fillStyle="rgba(255,255,255,.55)";
+    ctx.fill();
+    ctx.fillStyle="rgba(0,0,0,.65)";
+    ctx.font="1000 36px ui-sans-serif, system-ui";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText("ใส่รายการก่อน",0,-10);
+    ctx.font="800 16px ui-sans-serif, system-ui";
+    ctx.fillStyle="rgba(0,0,0,.55)";
+    ctx.fillText("แล้วกด “อัปเดตลงวงล้อ”",0,28);
+    ctx.restore();
+    return;
+  }
+
+  const n=items.length;
+  const slice=(Math.PI*2)/n;
+
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(currentAngle);
+
+  for(let i=0;i<n;i++){
+    const start=i*slice - Math.PI/2;
+    const end=start+slice;
+
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,radius,start,end);
+    ctx.closePath();
+    ctx.fillStyle=sliceColor(i,n);
+    ctx.fill();
+
+    ctx.lineWidth=4;
+    ctx.strokeStyle="rgba(0,0,0,.45)";
+    ctx.stroke();
+
+    const labelRaw = items[i];
+    const maxChars = clamp(18 - Math.floor(n/3), 8, 18);
+    const label = labelRaw.length > maxChars ? (labelRaw.slice(0,maxChars-1)+"…") : labelRaw;
+
+    ctx.save();
+    const mid = start + slice/2;
+    ctx.rotate(mid);
+    ctx.translate(radius*0.70, 0);
+    ctx.rotate(-mid);
+
+    const fontPx = clamp(30 - Math.floor(n/2), 16, 26);
+    drawLabel(label, 0, 0, fontPx);
+
+    ctx.restore();
+  }
+
+  /* ปุ่มกลาง START */
+  ctx.beginPath();
+  ctx.arc(0,0, radius*0.20, 0, Math.PI*2);
+  const cg = ctx.createRadialGradient(0,0,5, 0,0,radius*0.20);
+  cg.addColorStop(0, "#ffe07a");
+  cg.addColorStop(1, "#ff8a4d");
+  ctx.fillStyle = cg;
+  ctx.fill();
+
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.stroke();
+
+  ctx.font = `1000 ${Math.max(20, radius*0.06)}px ui-sans-serif, system-ui`;
+  ctx.fillStyle = "rgba(0,0,0,.75)";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText("START", 0, 2);
+
+  ctx.restore();
+}
+
+/* ✅ แก้แล้ว: สูตรหา winner ให้ตรงกับการวาดจริง */
+function getWinnerIndexFromAngle(angle){
+  const n = items.length;
+  const slice = (Math.PI * 2) / n;
+
+  // normalize to [0, 2π)
+  let a = angle % (Math.PI * 2);
+  if (a < 0) a += Math.PI * 2;
+
+  // slices start at -π/2, pointer is also at -π/2 (12 o'clock)
+  // local angle at pointer becomes (-a) mapped into [0, 2π)
+  let local = (-a) % (Math.PI * 2);
+  if (local < 0) local += Math.PI * 2;
+
+  // tiny epsilon to avoid boundary flip
+  const eps = 1e-10;
+  const idx = Math.floor((local + eps) / slice);
+
+  return clamp(idx, 0, n - 1);
+}
+
+function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
+
+function spin(){
+  if(spinning) return;
+  if(items.length < 2){
+    alert("ใส่รายการอย่างน้อย 2 รายการก่อนนะ");
+    return;
+  }
+  spinning = true;
+  btnSpin.disabled = true;
+
+  const rounds = 6 + Math.random()*4;
+  const extra = Math.random()*Math.PI*2;
+
+  spinFromAngle = currentAngle;
+  targetAngle = spinFromAngle + (Math.PI*2*rounds) + extra;
+
+  spinStart = performance.now();
+  spinDuration = 4200 + Math.random()*1200;
+
+  requestAnimationFrame(tick);
+}
+
+function tick(now){
+  const t = (now - spinStart) / spinDuration;
+  const p = clamp(t, 0, 1);
+  const e = easeOutCubic(p);
+
+  currentAngle = spinFromAngle + (targetAngle - spinFromAngle) * e;
+  drawWheel();
+
+  if(p < 1){
+    requestAnimationFrame(tick);
+  }else{
+    spinning = false;
+    btnSpin.disabled = false;
+
+    // ✅ ล็อกมุมให้เป๊ะก่อนคำนวณ winner
+    currentAngle = targetAngle;
+    drawWheel();
+
+    currentWinnerIndex = getWinnerIndexFromAngle(currentAngle);
+    const winner = items[currentWinnerIndex];
+
+    lastPill.textContent = "ล่าสุด: " + winner;
+    saveState();
+    openModal(winner);
+  }
+}
+
+function openModal(winner){
+  winText.textContent = winner;
+  modalBack.style.display = "flex";
+  btnRemoveWinner.disabled = (currentWinnerIndex < 0);
+}
+function closeModal(){
+  modalBack.style.display = "none";
+  currentWinnerIndex = -1;
+}
+
+function applyItems(){
+  const name = wheelName.value.trim() || "วงล้อสุ่ม";
+  wheelTitle.textContent = name;
+
+  items = normalizeItems(itemsInput.value);
+
+  countPill.textContent = `รายการ ${items.length}`;
+  if(items.length === 0) lastPill.textContent = "ล่าสุด: -";
+
+  currentWinnerIndex = -1;
+  drawWheel();
+  saveState();
+}
+
+btnApply.addEventListener("click", applyItems);
+btnShuffle.addEventListener("click", () => {
+  const list = normalizeItems(itemsInput.value);
+  shuffleArray(list);
+  itemsInput.value = list.join("\n");
+  applyItems();
+});
+btnClear.addEventListener("click", () => {
+  if(!confirm("ต้องการเคลียร์รายการทั้งหมดไหม?")) return;
+  itemsInput.value = "";
+  applyItems();
+});
+btnSpin.addEventListener("click", spin);
+
+btnFullscreen.addEventListener("click", async () => {
+  try{
+    if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    else await document.exitFullscreen();
+  }catch(e){
+    alert("เบราว์เซอร์นี้อาจไม่รองรับ fullscreen");
+  }
+});
+
+$("btnCloseModal").addEventListener("click", closeModal);
+$("btnPlayAgain").addEventListener("click", closeModal);
+modalBack.addEventListener("click", (e) => { if(e.target === modalBack) closeModal(); });
+
+btnRemoveWinner.addEventListener("click", () => {
+  if(currentWinnerIndex < 0) return;
+  items.splice(currentWinnerIndex, 1);
+  itemsInput.value = items.join("\n");
+  applyItems();
+  closeModal();
+});
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") closeModal();
+  if(e.code === "Space"){
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if(tag === "INPUT" || tag === "TEXTAREA") return;
+    e.preventDefault();
+    spin();
+  }
+});
+
+/* init */
+loadState();
+applyItems();
+drawWheel();
+</script>
+</body>
+</html>
