@@ -470,24 +470,31 @@
       }
     }
 
-    async function remoteSaveState(stateObj){
-      try{
-        setSync("busy", "Sync: กำลังบันทึก...");
-        const res = await fetch(GAS_URL, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ token: GAS_TOKEN, data: stateObj })
-        });
-        const j = await res.json();
-        if(!j.ok) throw new Error(j.error || "save_failed");
-        setSync("ok", "Sync: บันทึกแล้ว");
-        return true;
-      }catch(e){
-        console.warn("remoteSaveState error:", e);
-        setSync("bad", "Sync: บันทึกไม่สำเร็จ");
-        return false;
-      }
-    }
+async function remoteSaveState(stateObj){
+  try{
+    setSync("busy", "Sync: กำลังบันทึก...");
+
+    // ✅ ส่งเป็น text/plain เพื่อหลบ CORS preflight (สำคัญมาก)
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ token: GAS_TOKEN, data: stateObj })
+    });
+
+    // บางครั้งอ่าน JSON ไม่ได้เพราะ CORS/redirect เราเลยอ่านแบบ text แล้ว parse เอง
+    const txt = await res.text();
+    let j = null;
+    try { j = JSON.parse(txt); } catch(_) {}
+
+    if(!j || !j.ok) throw new Error((j && j.error) ? j.error : "save_failed");
+
+    setSync("ok", "Sync: บันทึกแล้ว");
+    return true;
+  }catch(e){
+    console.warn("remoteSaveState error:", e);
+    setSync("bad", "Sync: บันทึกไม่สำเร็จ");
+    return false;
+  }
+}
 
     // ===== Local state =====
     function saveState(){
