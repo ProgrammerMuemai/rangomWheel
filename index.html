@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>วงล้อสุ่ม (Random Wheel) - ใช้ส่วนตัว</title>
+  <title>วงล้อสุ่ม (Random Wheel) - 2 ผู้ใช้ (แยกข้อมูล)</title>
   <style>
     :root{
       --bg:#0b1020;
-      --card:#121a33;
-      --card2:#0f1630;
       --text:#e9eeff;
       --muted:#aab6e8;
       --line:rgba(255,255,255,.12);
@@ -18,7 +16,6 @@
       --ok:#14c38e;
       --shadow: 0 12px 40px rgba(0,0,0,.35);
       --radius:18px;
-      --radius2:14px;
     }
     *{box-sizing:border-box}
     body{
@@ -59,7 +56,6 @@
     @media (max-width: 980px){
       .wrap{grid-template-columns: 1fr; }
     }
-
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       border:1px solid var(--line);
@@ -110,7 +106,6 @@
     }
     button.secondary:hover{background: rgba(255,255,255,.14)}
     button.danger{background: var(--danger); box-shadow: 0 10px 26px rgba(255,59,92,.22)}
-    button.danger:hover{filter:brightness(.95)}
     button.ok{background: var(--ok); box-shadow: 0 10px 26px rgba(20,195,142,.22)}
     button:disabled{opacity:.55; cursor:not-allowed; box-shadow:none}
 
@@ -152,7 +147,6 @@
       border:1px solid var(--line);
       background: rgba(0,0,0,.16);
     }
-
     .tabs{
       display:flex; gap:8px; flex-wrap:wrap;
     }
@@ -171,7 +165,6 @@
       color: var(--text);
       border-color: rgba(42,59,255,.45);
     }
-
     .list{
       margin-top:12px;
       display:flex;
@@ -192,12 +185,6 @@
       background: rgba(0,0,0,.18);
     }
     .item small{color:var(--muted)}
-    .item button{
-      padding:8px 10px;
-      border-radius: 10px;
-      font-size:12px;
-      box-shadow:none;
-    }
 
     /* modal */
     .modalBack{
@@ -241,7 +228,6 @@
       text-align:center;
       margin-top:10px;
     }
-
     .footnote{
       font-size:12px; color:var(--muted);
       padding: 10px 14px 14px;
@@ -276,6 +262,9 @@
     .dot.ok{ background: rgba(20,195,142,.95); }
     .dot.bad{ background: rgba(255,59,92,.95); }
     .dot.busy{ background: rgba(255,223,106,.95); }
+
+    /* Login modal visible by default */
+    #loginBack{ display:flex; z-index:150; }
   </style>
 </head>
 <body>
@@ -283,8 +272,8 @@
     <div class="title">
       <div class="badge">RW</div>
       <div>
-        <h1>วงล้อสุ่ม (Random Wheel) — ใช้ส่วนตัว</h1>
-        <p>ใส่รายการ → กดหมุน → ดูผล → เลือก “ลบออก” เพื่อเอาผู้ชนะออกจากวงล้อ</p>
+        <h1>วงล้อสุ่ม (Random Wheel) — 2 ผู้ใช้ (แยกข้อมูล)</h1>
+        <p>Login → ใส่รายการ → กดหมุน → ข้อมูลจะแยกตาม user และซิงก์ขึ้น Google Sheet</p>
       </div>
     </div>
   </header>
@@ -317,9 +306,7 @@
 โกโก้
 น้ำเปล่า"></textarea>
 
-        <div class="hint">
-          ทิป: คั่นด้วยบรรทัดใหม่ (Enter) / เว้นว่างได้ ระบบจะตัดออกให้เอง
-        </div>
+        <div class="hint">ทิป: คั่นด้วยบรรทัดใหม่ (Enter) / เว้นว่างได้ ระบบจะตัดออกให้เอง</div>
 
         <div style="height:12px"></div>
 
@@ -335,10 +322,15 @@
         <div class="stats">
           <div class="pill" id="countPill">รายการ 0</div>
           <div class="pill" id="lastPill">ล่าสุด: -</div>
+          <div class="pill" id="userPill">ผู้ใช้: -</div>
         </div>
 
         <div class="hint" style="margin-top:12px">
           คีย์ลัด: <b>Space</b> = หมุน, <b>Esc</b> = ปิดหน้าผลลัพธ์
+        </div>
+
+        <div class="btns" style="margin-top:12px">
+          <button class="secondary" id="btnLogout">ออกจากระบบ</button>
         </div>
       </div>
 
@@ -351,8 +343,8 @@
       </div>
 
       <div class="footnote">
-        * ใช้เพื่อความบันเทิง/การสุ่มส่วนตัวเท่านั้น<br/>
-        * ข้อมูลจะถูกเก็บทั้งในเครื่อง (localStorage) และบน Google Sheet (Apps Script) เพื่อเปิดใหม่/ข้ามเครื่องแล้วยังอยู่
+        * ใช้ส่วนตัว “กึ่งปลอดภัย” (เหมาะกับใช้งานเอง)<br/>
+        * ข้อมูลแยกตามผู้ใช้ (user1/user2) และซิงก์ขึ้น Google Sheet
       </div>
     </section>
 
@@ -371,14 +363,12 @@
       </div>
 
       <div class="bd" style="padding-top:0">
-        <div class="hint">
-          ถ้ารายการเยอะ ตัวหนังสือจะย่ออัตโนมัติ และวงล้อจะปรับจำนวนชิ้นส่วนตามรายการ
-        </div>
+        <div class="hint">ถ้ารายการเยอะ ตัวหนังสือจะย่ออัตโนมัติ</div>
       </div>
     </section>
   </main>
 
-  <!-- MODAL -->
+  <!-- RESULT MODAL -->
   <div class="modalBack" id="modalBack" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="mhd">
@@ -396,6 +386,29 @@
     </div>
   </div>
 
+  <!-- LOGIN MODAL -->
+  <div class="modalBack" id="loginBack" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="mhd">
+        <strong>เข้าสู่ระบบ</strong>
+        <span style="font-size:12px;color:var(--muted)">2 ผู้ใช้ แยกข้อมูล</span>
+      </div>
+      <div class="mbd">
+        <div class="hint">ใส่ Username/Password เพื่อโหลด/บันทึกวงล้อของคุณ</div>
+        <div style="height:12px"></div>
+        <label>Username</label>
+        <input id="loginUser" type="text" placeholder="user1 หรือ user2" autocomplete="username" />
+        <div style="height:10px"></div>
+        <label>Password</label>
+        <input id="loginPass" type="text" placeholder="รหัสผ่าน" autocomplete="current-password" />
+        <div class="actions" style="margin-top:14px">
+          <button class="ok" id="btnLogin">Login</button>
+        </div>
+        <div class="kbd" id="loginMsg"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Sync Badge -->
   <div class="syncBadge" id="syncBadge" title="สถานะซิงก์ Google Sheet">
     <span class="dot" id="syncDot"></span>
@@ -405,9 +418,7 @@
   <script>
     // ===== Utilities =====
     const $ = (id) => document.getElementById(id);
-
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-
     function shuffleArray(arr){
       for(let i = arr.length - 1; i > 0; i--){
         const j = Math.floor(Math.random() * (i + 1));
@@ -415,14 +426,9 @@
       }
       return arr;
     }
-
     function normalizeItems(text){
-      return text
-        .split(/\r?\n/)
-        .map(s => s.trim())
-        .filter(Boolean);
+      return text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     }
-
     function escapeHtml(s){
       return String(s)
         .replaceAll("&","&amp;")
@@ -432,92 +438,8 @@
         .replaceAll("'","&#039;");
     }
 
-    // ===== Google Sheets (Apps Script API) =====
+    // ===== Google Apps Script URL (ใส่ของเม้ง) =====
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzZ-4KUbqkqKoeJYEVRGS-2h-UPGx0elFT59RwWoxwtLFTrXI5caT4wPc1HKtuIXPW2/exec";
-    const GAS_TOKEN = "172809";
-
-    // ===== Sync badge =====
-    const syncBadge = $("syncBadge");
-    const syncDot = $("syncDot");
-    const syncText = $("syncText");
-    let syncTimer = null;
-
-    function setSync(status, text){
-      syncDot.classList.remove("ok","bad","busy");
-      if(status) syncDot.classList.add(status);
-      syncText.textContent = text || "Sync";
-      if(syncTimer) clearTimeout(syncTimer);
-      syncTimer = setTimeout(() => {
-        syncDot.classList.remove("busy","bad");
-        syncText.textContent = "Sync: พร้อม";
-      }, 3000);
-    }
-
-    // ===== Remote (Google Sheet) =====
-    async function remoteLoadState(){
-      try{
-        setSync("busy", "Sync: กำลังโหลด...");
-        const url = `${GAS_URL}?token=${encodeURIComponent(GAS_TOKEN)}`;
-        const res = await fetch(url, { method:"GET" });
-        const j = await res.json();
-        if(!j.ok) throw new Error(j.error || "load_failed");
-        setSync("ok", "Sync: โหลดแล้ว");
-        return j.data || null;
-      }catch(e){
-        console.warn("remoteLoadState error:", e);
-        setSync("bad", "Sync: โหลดไม่สำเร็จ");
-        return null;
-      }
-    }
-
-async function remoteSaveState(stateObj){
-  try{
-    setSync("busy", "Sync: กำลังบันทึก...");
-
-    // ✅ ส่งเป็น text/plain เพื่อหลบ CORS preflight (สำคัญมาก)
-    const res = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ token: GAS_TOKEN, data: stateObj })
-    });
-
-    // บางครั้งอ่าน JSON ไม่ได้เพราะ CORS/redirect เราเลยอ่านแบบ text แล้ว parse เอง
-    const txt = await res.text();
-    let j = null;
-    try { j = JSON.parse(txt); } catch(_) {}
-
-    if(!j || !j.ok) throw new Error((j && j.error) ? j.error : "save_failed");
-
-    setSync("ok", "Sync: บันทึกแล้ว");
-    return true;
-  }catch(e){
-    console.warn("remoteSaveState error:", e);
-    setSync("bad", "Sync: บันทึกไม่สำเร็จ");
-    return false;
-  }
-}
-
-    // ===== Local state =====
-    function saveState(){
-      const state = {
-        name: wheelName.value.trim(),
-        itemsText: itemsInput.value,
-        results: results
-      };
-      localStorage.setItem("privateRandomWheelState_v1", JSON.stringify(state));
-      // send to Google Sheet (async)
-      remoteSaveState(state);
-    }
-
-    function loadState(){
-      try{
-        const raw = localStorage.getItem("privateRandomWheelState_v1");
-        if(!raw) return;
-        const state = JSON.parse(raw);
-        wheelName.value = state.name || "";
-        itemsInput.value = state.itemsText || "";
-        results = Array.isArray(state.results) ? state.results : [];
-      }catch(e){}
-    }
 
     // ===== Elements =====
     const canvas = $("wheel");
@@ -532,6 +454,7 @@ async function remoteSaveState(stateObj){
     const btnSpin = $("btnSpin");
     const countPill = $("countPill");
     const lastPill = $("lastPill");
+    const userPill = $("userPill");
 
     const tabItems = $("tabItems");
     const tabResults = $("tabResults");
@@ -546,7 +469,164 @@ async function remoteSaveState(stateObj){
     const btnPlayAgain = $("btnPlayAgain");
     const btnRemoveWinner = $("btnRemoveWinner");
 
-    // ===== State =====
+    const btnLogout = $("btnLogout");
+
+    // ===== Login UI =====
+    const loginBack = $("loginBack");
+    const loginUser = $("loginUser");
+    const loginPass = $("loginPass");
+    const btnLogin = $("btnLogin");
+    const loginMsg = $("loginMsg");
+
+    // ===== Sync badge =====
+    const syncDot = $("syncDot");
+    const syncText = $("syncText");
+    let syncTimer = null;
+    function setSync(status, text){
+      syncDot.classList.remove("ok","bad","busy");
+      if(status) syncDot.classList.add(status);
+      syncText.textContent = text || "Sync";
+      if(syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        syncDot.classList.remove("busy","bad");
+        syncText.textContent = "Sync: พร้อม";
+      }, 2500);
+    }
+
+    // ===== Auth/session + per-user local storage key =====
+    let SESSION = localStorage.getItem("rw_session") || "";
+    let CURRENT_USER = localStorage.getItem("rw_user") || "";
+
+    function storageKey(){
+      return "privateRandomWheelState_v1__" + (CURRENT_USER || "guest");
+    }
+
+    function showLogin(msg=""){
+      loginMsg.textContent = msg;
+      loginBack.style.display = "flex";
+    }
+    function hideLogin(){
+      loginBack.style.display = "none";
+    }
+
+    async function apiPost(payload){
+      // ✅ no headers => avoid CORS preflight
+      const res = await fetch(GAS_URL, { method:"POST", body: JSON.stringify(payload) });
+      const txt = await res.text();
+      try { return JSON.parse(txt); } catch(e){ return { ok:false, error:"bad_json" }; }
+    }
+
+    async function login(){
+      const u = loginUser.value.trim();
+      const p = loginPass.value.trim();
+      if(!u || !p) { showLogin("กรอก user/pass ก่อน"); return; }
+
+      loginMsg.textContent = "กำลังล็อกอิน...";
+      const j = await apiPost({ action:"login", username:u, password:p });
+
+      if(!j.ok){
+        showLogin(j.error === "bad_credentials" ? "user/pass ไม่ถูก" : ("error: " + j.error));
+        return;
+      }
+
+      SESSION = j.session;
+      CURRENT_USER = j.user;
+      localStorage.setItem("rw_session", SESSION);
+      localStorage.setItem("rw_user", CURRENT_USER);
+
+      userPill.textContent = "ผู้ใช้: " + CURRENT_USER;
+
+      hideLogin();
+
+      // load remote after login
+      const remote = await remoteLoadState();
+      if(remote && typeof remote === "object"){
+        wheelName.value = remote.name || "";
+        itemsInput.value = remote.itemsText || "";
+        results = Array.isArray(remote.results) ? remote.results : [];
+
+        localStorage.setItem(storageKey(), JSON.stringify({ name: wheelName.value.trim(), itemsText: itemsInput.value, results }));
+        applyItems(false);
+        renderResults();
+        drawWheel();
+      }else{
+        // if remote empty, try local per-user
+        loadState();
+        applyItems(false);
+        renderResults();
+        drawWheel();
+      }
+    }
+
+    function logout(){
+      SESSION = "";
+      CURRENT_USER = "";
+      localStorage.removeItem("rw_session");
+      localStorage.removeItem("rw_user");
+      userPill.textContent = "ผู้ใช้: -";
+      showLogin("ออกจากระบบแล้ว");
+    }
+
+    btnLogin.addEventListener("click", login);
+    btnLogout.addEventListener("click", logout);
+
+    // ===== Remote load/save (must have session) =====
+    async function remoteLoadState(){
+      try{
+        if(!SESSION) throw new Error("no_session");
+        setSync("busy","Sync: กำลังโหลด...");
+        const url = `${GAS_URL}?session=${encodeURIComponent(SESSION)}`;
+        const res = await fetch(url, { method:"GET" });
+        const j = await res.json();
+        if(!j.ok) throw new Error(j.error || "load_failed");
+        setSync("ok","Sync: โหลดแล้ว");
+        return j.data || null;
+      }catch(e){
+        console.warn("remoteLoadState error:", e);
+        setSync("bad","Sync: โหลดไม่สำเร็จ");
+        return null;
+      }
+    }
+
+    async function remoteSaveState(stateObj){
+      try{
+        if(!SESSION) throw new Error("no_session");
+        setSync("busy","Sync: กำลังบันทึก...");
+        const j = await apiPost({ action:"save", session: SESSION, data: stateObj });
+        if(!j.ok) throw new Error(j.error || "save_failed");
+        setSync("ok","Sync: บันทึกแล้ว");
+        return true;
+      }catch(e){
+        console.warn("remoteSaveState error:", e);
+        setSync("bad","Sync: บันทึกไม่สำเร็จ");
+        return false;
+      }
+    }
+
+    // ===== Local state (per user) =====
+    function saveState(){
+      const state = {
+        name: wheelName.value.trim(),
+        itemsText: itemsInput.value,
+        results: results
+      };
+      localStorage.setItem(storageKey(), JSON.stringify(state));
+      // also send to google sheet (async)
+      remoteSaveState(state);
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(storageKey());
+        if(!raw) return;
+        const state = JSON.parse(raw);
+        wheelName.value = state.name || "";
+        itemsInput.value = state.itemsText || "";
+        results = Array.isArray(state.results) ? state.results : [];
+      }catch(e){}
+    }
+
+    // ===== App State =====
     let items = [];
     let results = []; // [{text, time}]
     let spinning = false;
@@ -562,9 +642,7 @@ async function remoteSaveState(stateObj){
     // ===== Drawing =====
     function niceColor(i, n){
       const hue = (i * (360 / Math.max(1,n))) % 360;
-      const sat = 78;
-      const light = 56;
-      return `hsl(${hue}, ${sat}%, ${light}%)`;
+      return `hsl(${hue}, 78%, 56%)`;
     }
 
     function drawWheel(){
@@ -574,7 +652,6 @@ async function remoteSaveState(stateObj){
 
       ctx.clearRect(0,0,w,h);
 
-      // background ring
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, radius + 26, 0, Math.PI*2);
@@ -612,7 +689,6 @@ async function remoteSaveState(stateObj){
         const start = i * slice - Math.PI/2;
         const end = start + slice;
 
-        // slice
         ctx.beginPath();
         ctx.moveTo(0,0);
         ctx.arc(0,0,radius,start,end);
@@ -620,12 +696,10 @@ async function remoteSaveState(stateObj){
         ctx.fillStyle = niceColor(i, n);
         ctx.fill();
 
-        // divider line
         ctx.strokeStyle = "rgba(0,0,0,.22)";
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // text
         const label = items[i];
         ctx.save();
         ctx.rotate(start + slice/2);
@@ -644,7 +718,6 @@ async function remoteSaveState(stateObj){
         ctx.restore();
       }
 
-      // center cap
       ctx.beginPath();
       ctx.arc(0,0, radius*0.14, 0, Math.PI*2);
       ctx.fillStyle = "rgba(0,0,0,.38)";
@@ -657,7 +730,7 @@ async function remoteSaveState(stateObj){
       ctx.restore();
     }
 
-    // ===== Picking winner from angle (fixed) =====
+    // ===== Winner index (fixed) =====
     function getWinnerIndexFromAngle(angle){
       const n = items.length;
       const slice = (Math.PI * 2) / n;
@@ -665,7 +738,6 @@ async function remoteSaveState(stateObj){
       let a = angle % (Math.PI * 2);
       if (a < 0) a += Math.PI * 2;
 
-      // slices start at -π/2 and pointer is also at -π/2 (12 o'clock)
       let local = (-a) % (Math.PI * 2);
       if (local < 0) local += Math.PI * 2;
 
@@ -712,7 +784,6 @@ async function remoteSaveState(stateObj){
         spinning = false;
         btnSpin.disabled = false;
 
-        // lock angle for precision
         currentAngle = targetAngle;
         drawWheel();
 
@@ -773,7 +844,7 @@ async function remoteSaveState(stateObj){
     }
 
     // ===== Apply items =====
-    function applyItems(){
+    function applyItems(doSave=true){
       const name = wheelName.value.trim() || "วงล้อสุ่ม";
       wheelTitle.textContent = name;
 
@@ -785,7 +856,7 @@ async function remoteSaveState(stateObj){
       currentWinnerIndex = -1;
 
       drawWheel();
-      saveState();
+      if(doSave) saveState();
     }
 
     // ===== Fullscreen =====
@@ -802,23 +873,22 @@ async function remoteSaveState(stateObj){
     }
 
     // ===== Events =====
-    btnApply.addEventListener("click", applyItems);
+    btnApply.addEventListener("click", () => applyItems(true));
 
     btnShuffle.addEventListener("click", () => {
       const list = normalizeItems(itemsInput.value);
       shuffleArray(list);
       itemsInput.value = list.join("\n");
-      applyItems();
+      applyItems(true);
     });
 
     btnClear.addEventListener("click", () => {
       if(!confirm("ต้องการเคลียร์รายการทั้งหมดไหม?")) return;
       itemsInput.value = "";
-      applyItems();
+      applyItems(true);
     });
 
     btnSpin.addEventListener("click", spin);
-
     btnFullscreen.addEventListener("click", toggleFullscreen);
 
     tabItems.addEventListener("click", () => setTab("items"));
@@ -840,7 +910,7 @@ async function remoteSaveState(stateObj){
 
       items.splice(currentWinnerIndex, 1);
       itemsInput.value = items.join("\n");
-      applyItems();
+      applyItems(true);
       closeModal();
 
       const time = new Date().toLocaleString("th-TH", { hour12:false });
@@ -865,22 +935,29 @@ async function remoteSaveState(stateObj){
 
     // ===== Init =====
     (async () => {
-      // local first
+      userPill.textContent = "ผู้ใช้: " + (CURRENT_USER || "-");
+
+      // always init drawing from local first (per user)
       loadState();
-      applyItems();
+      applyItems(false);
       renderResults();
       drawWheel();
 
-      // then remote (overwrite if exists)
+      // if has session+user -> try remote load; else require login
+      if(!SESSION || !CURRENT_USER){
+        showLogin("กรุณา Login (user1/user2)");
+        return;
+      }else{
+        hideLogin();
+      }
+
       const remote = await remoteLoadState();
       if(remote && typeof remote === "object"){
         wheelName.value = remote.name || "";
         itemsInput.value = remote.itemsText || "";
         results = Array.isArray(remote.results) ? remote.results : [];
-
-        localStorage.setItem("privateRandomWheelState_v1", JSON.stringify(remote));
-
-        applyItems();
+        localStorage.setItem(storageKey(), JSON.stringify({ name: wheelName.value.trim(), itemsText: itemsInput.value, results }));
+        applyItems(false);
         renderResults();
         drawWheel();
       }
